@@ -21,6 +21,7 @@ class Log {
 
         if(session_id() == "") {
             session_start();
+            $this->add_info_log("Activation des sessions");
         }
 
         $this->_path_log = $p_path;
@@ -30,17 +31,7 @@ class Log {
         $this->_show_err  = false;
         $this->_show_info = false;
 
-        if(isset($_SESSION['log_started'])) {
-            if(!$_SESSION['log_started']) {
-                $this->add_info_log("Initialisation fichier de log");
-                $this->write_log();
-                $_SESSION['log_started'] = true;
-            }
-        } else {
-            $this->add_info_log("Initialisation fichier de log");
-            $this->write_log();
-            $_SESSION['log_started'] = true;
-        }
+
 
     }
 
