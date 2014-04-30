@@ -80,7 +80,7 @@ class Login {
 	public function logout() {
 		unset($_SESSION['user']);
         unset($_SESSION['user_connected']);
-        $this->log->write_info_log("Deconnexion de l'utilisateur.");
+        $this->log->write_info_log("Deconnexion de l'utilisateur. (".$_SERVER['REMOTE_ADDR'].")");
 	}
 
     public function connect_db($p_host, $p_login, $p_mdp, $p_base) {
@@ -145,14 +145,14 @@ class Login {
                         $_SESSION['user_connected'] = true;
                         $this->connec_ok = true; //on indique que la connexion est établie
 
-                        $this->log->write_info_log("Connexion de l'utilisateur effectuee.");
+                        $this->log->write_info_log("Connexion de l'utilisateur effectuee. (".$_SERVER['REMOTE_ADDR'] .")");
 
                         return true;
                     } else {
-                        $this->log->add_err_log("Erreur lors de la connexion !");
+                        $this->log->add_err_log("Erreur lors de la connexion ! (".$_SERVER['REMOTE_ADDR'] .")");
                     }
                 } else {
-                    $this->log->add_err_log("Erreur dans la requete !");
+                    $this->log->add_err_log("Erreur dans la requete ! (".$_SERVER['REMOTE_ADDR'] .")");
                 }
             }
             $this->log->write_log();

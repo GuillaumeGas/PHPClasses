@@ -31,17 +31,27 @@ class Log {
         $this->_show_err  = false;
         $this->_show_info = false;
 
-
+        if(isset($_SESSION['log_started'])) {
+            if(!$_SESSION['log_started']) {
+                $this->add_info_log("Initialisation fichier de log");
+                $this->write_log();
+                $_SESSION['log_started'] = true;
+            }
+        } else {
+            $this->add_info_log("Initialisation fichier de log");
+            $this->write_log();
+            $_SESSION['log_started'] = true;
+        }
 
     }
 
     /**
      * Désactive l'utilisation du fichier de log
      */
-    /*public function close() {
+    public function close() {
         $_SESSION['log_started'] = false;
         unset($_SESSION['log_started']);
-    }*/
+    }
 
     /**
      * Supprime le fichier de log
