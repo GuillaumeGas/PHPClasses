@@ -64,8 +64,21 @@ class Log {
      * @param $err Représente le message d'erreur
      */
     public function add_err_log($err) {
-        $this->_err .= $err."<br>";
-        $this->_log .= date("[j/m/y H:i:s]")." - ".$err."\r\n";
+        $this->_err .= "[!] ".$err."<br>";
+        $this->_log .= "[!] ".date("[j/m/y H:i:s]")." - ".$err."\r\n";
+
+        if($this->_show_err) {
+            $this->show_err();
+        }
+    }
+
+    /**
+     * @brief Ecrit le message d'erreur aux variables concernées (err et log)
+     * @param $err Représente le message d'erreur
+     */
+    public function write_err_log($err) {
+        $this->_err .= "[!] ".$err."<br>";
+        $this->_log .= "[!] ".date("[j/m/y H:i:s]")." - ".$err."\r\n";
 
         $this->write_log();
     }
@@ -75,6 +88,19 @@ class Log {
      * @param $err Représente le message d'info
      */
     public function add_info_log($info) {
+        $this->_info .= $info."<br>";
+        $this->_log .= date("[j/m/y H:i:s]")." - ".$info."\r\n";
+
+        if($this->_show_info) {
+            $this->show_info();
+        }
+    }
+
+    /**
+     * @brief Ecrit le message d'info aux variables concernées (info et log)
+     * @param $err Représente le message d'info
+     */
+    public function write_info_log($info) {
         $this->_info .= $info."<br>";
         $this->_log .= date("[j/m/y H:i:s]")." - ".$info."\r\n";
 
@@ -118,6 +144,7 @@ class Log {
      */
     public function show_err() {
         echo $this->_err;
+        $this->clean_err();
     }
 
     /**
@@ -125,6 +152,30 @@ class Log {
      */
     public function show_info() {
         echo $this->_info;
+        $this->clean_info();
+    }
+
+    /**
+     * Supprime les info
+     */
+    public function clean_info() {
+        $this->_info = "";
+    }
+
+    /**
+     * Supprime les erreurs
+     */
+    public function clean_err() {
+        $this->_err = "";
+    }
+
+    /**
+     * Supprime toutes les donnees enregistrées
+     */
+    public function clean_all() {
+        $this->_info = "";
+        $this->_err  = "";
+        $this->_log  = "";
     }
 
     /**
