@@ -6,7 +6,7 @@ Regroupement de classes php utiles
 # Login #
 Cette classe permet la création d'une page de login très simplement, avec ou sans génération de formulaire.
 Exemple :
-'''php
+```php
 session_start();
 require("Login.class.php");
 
@@ -28,12 +28,12 @@ if($l->login()) {
 } else {
     $l->generer_formulaire("test.php");
 }
-'''
+```
 
 # Log #
 Cette classe permet de gérer un fichier de log
 Exemple :
-'''php
+```php
 require("Log.class.php");
 
 $log = new Log("../login.log");
@@ -46,4 +46,4 @@ try {
 }
 
 $this->log->write_log();
-'''
+```
