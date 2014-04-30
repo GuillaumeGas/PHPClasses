@@ -38,13 +38,17 @@ class Login {
         if(session_status() == PHP_SESSION_DISABLED) {
             session_start();
         }
-        if(isset($_SESSION['user'])) {
-            unset($_SESSION['user']);
+
+        if(isset($_SESSION['user_connected'])) {
+            if($_SESSION['user_connected']) {
+                $this->connec_ok = true;
+            }
         }
 	}
 	
 	public function logout() {
 		unset($_SESSION['user']);
+        unset($_SESSION['user_connected']);
 	}
 
     public function connect_db($p_host, $p_login, $p_mdp, $p_base) {
@@ -60,68 +64,74 @@ class Login {
             $this->liste_champs_cryptes[] = $p_name;
         }
 	}
-	
-	public function afficher() {
-		
-		//on vérifi ici si des données ont été envoyées
-		$this->champs_ok = true; //on suppose que les champs ont été remplis
-        $liste_valeurs = array();
-		for($i = 0; $i < count($this->liste_champs_name); $i++) { //on prend chaque nom de champs
-			if(!isset($_POST[$this->liste_champs_name[$i]])) {    //et on vérifi si des données ont été envoyés
-				$this->champs_ok = false;
-			} else {
-                if(in_array($this->liste_champs_name[$i], $this->liste_champs_cryptes)) {
-                    $liste_valeurs[':'.$i] = md5($_POST[$this->liste_champs_name[$i]]);
+
+	public function login() {
+        if(!$this->connec_ok) {
+            //on vérifi ici si des données ont été envoyées
+            $this->champs_ok = true; //on suppose que les champs ont été remplis
+            $liste_valeurs = array();
+            for($i = 0; $i < count($this->liste_champs_name); $i++) { //on prend chaque nom de champs
+                if(!isset($_POST[$this->liste_champs_name[$i]])) {    //et on vérifi si des données ont été envoyés
+                    $this->champs_ok = false;
                 } else {
-                    $liste_valeurs[':'.$i] = $_POST[$this->liste_champs_name[$i]];
+                    if(in_array($this->liste_champs_name[$i], $this->liste_champs_cryptes)) {
+                        $liste_valeurs[':'.$i] = md5($_POST[$this->liste_champs_name[$i]]);
+                    } else {
+                        $liste_valeurs[':'.$i] = $_POST[$this->liste_champs_name[$i]];
+                    }
                 }
             }
-		}
-		
-		//si les données ont été envoyées 
-		if($this->champs_ok) {
-			//on génére la requéte
-			$debut_requete = "SELECT * FROM ".$this->table." WHERE ";
-			
-			//dans cette partie de la requéte, on doit ajouter chaque nom de champs, ceux ci étant stocké dans un tableau (liste_champs_name)
-			$fin_requete = "";
-			for($i = 0; $i < count($this->liste_champs_name); $i++) {
-				if($i == 0) { //si c'est le premier paramétre, pas besoin de le faire précéder d'un AND 
-					$fin_requete = $this->liste_champs_name[$i]." = :".$i;
-				} else { //sinon on le sépar des précédent par un AND
-					$fin_requete .= " AND ".$this->liste_champs_name[$i]." = :".$i;
-				}
-			}
 
-            //concaténation de chaque partie de la requéte, utilisation de prepare pour plus de sécurité
-			$requete = $this->bdd->prepare($debut_requete.$fin_requete);
+            //si les données ont été envoyées
+            if($this->champs_ok) {
+                //on génére la requéte
+                $debut_requete = "SELECT * FROM ".$this->table." WHERE ";
 
-			if($requete->execute($liste_valeurs)) {
-				if($requete->rowCount() > 0) {
-					$_SESSION['user'] = $requete->fetch(); //on stock tout dans une variable de session
-					info("Vous etes connecte.");
-					$this->connec_ok = true; //on indique que la connexion est établie
-				} else {
-					erreur("Erreur lors de la connexion.");
-				}
-			} else {
-				erreur("Erreur requete");
-			}
+                //dans cette partie de la requéte, on doit ajouter chaque nom de champs, ceux ci étant stocké dans un tableau (liste_champs_name)
+                $fin_requete = "";
+                for($i = 0; $i < count($this->liste_champs_name); $i++) {
+                    if($i == 0) { //si c'est le premier paramétre, pas besoin de le faire précéder d'un AND
+                        $fin_requete = $this->liste_champs_name[$i]." = :".$i;
+                    } else { //sinon on le sépar des précédent par un AND
+                        $fin_requete .= " AND ".$this->liste_champs_name[$i]." = :".$i;
+                    }
+                }
 
-            echo var_dump($debut_requete.$fin_requete);
-		} else {
-			//affichage du formulaire
-			echo '<form action="'.$this->fichier_action.'", method="POST">';
-			echo '<table>';
-	  			for($i = 0; $i < count($this->liste_champs_name); $i++) {
-	  				echo ('<tr><td>'.$this->liste_champs_value[$i].' : <input type="'.$this->liste_champs_type[$i].'" name="'.$this->liste_champs_name[$i].'" id="'.$this->liste_champs_name[$i].'"></td></tr>');
-	  			}
-	  			echo '<tr><td><center><input type="submit" value="ok"></center></td></tr>';
-	  		echo '</form>';
-			echo '</form>';
-		}
+                //concaténation de chaque partie de la requéte, utilisation de prepare pour plus de sécurité
+                $requete = $this->bdd->prepare($debut_requete.$fin_requete);
+
+                if($requete->execute($liste_valeurs)) {
+                    if($requete->rowCount() > 0) {
+                        $_SESSION['user'] = $requete->fetch(); //on stock tout dans une variable de session
+                        $_SESSION['user_connected'] = true;
+                        info("Vous etes connecte.");
+                        $this->connec_ok = true; //on indique que la connexion est établie
+                        return true;
+                    } else {
+                        erreur("Erreur lors de la connexion.");
+                    }
+                } else {
+                    erreur("Erreur requete");
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
 	}
-	
+
+    public function generer_formulaire() {
+        //affichage du formulaire
+        echo '<form action="'.$this->fichier_action.'", method="POST">';
+        echo '<table>';
+        for($i = 0; $i < count($this->liste_champs_name); $i++) {
+            echo ('<tr><td>'.$this->liste_champs_value[$i].' : <input type="'.$this->liste_champs_type[$i].'" name="'.$this->liste_champs_name[$i].'" id="'.$this->liste_champs_name[$i].'"></td></tr>');
+        }
+        echo '<tr><td><center><input type="submit" value="ok"></center></td></tr>';
+        echo '</form>';
+        echo '</form>';
+    }
+
 	//fonction permettant de vérifier si la connexion a été établie
 	public function connexion_ok() {
 		if($this->connec_ok) {
