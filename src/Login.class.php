@@ -42,7 +42,7 @@ class Login {
 		
 		$this->connec_ok = false;
 
-        if(session_status() == PHP_SESSION_DISABLED) {
+        if(session_id() == "") {
             session_start();
             $this->log->add_info_log("Activation des sessions");
         }
@@ -88,7 +88,7 @@ class Login {
             $this->bdd = new PDO('mysql:host='.$p_host.';dbname='.$p_base, $p_login, $p_mdp);
             $this->log->add_info_log("Connexion à la base de donnees effectuee.");
         } catch(PDOException $e) {
-            $this->log->add_err_log("Erreur lors de la connexion.");
+            $this->log->add_err_log("Erreur lors de la connexion à la base de données.");
         }
 
         $this->log->write_log();
