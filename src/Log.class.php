@@ -1,14 +1,22 @@
 <?php
 
+/**
+ * Class Log, Permet de gérer facilement un fichier de log
+ */
+
 class Log {
 
-    private $_log;
-    private $_err;
-    private $_info;
-    private $_show_err;
-    private $_show_info;
-    private $_path_log;
+    private $_log;       //Contient le message de log à écrire
+    private $_err;       //Contient le message d'erreur à garder (ajouté par l'utilisateur de la classe)
+    private $_info;      //Contient le message d'information à garder (ajouté par l'utilisateur de la classe)
+    private $_show_err;  //Indique si les messages d'erreurs doivent être affichés
+    private $_show_info; //Indique si les messages d'info doivent être affichés
+    private $_path_log;  //Contient le chemin ainsi que le nom du fichier de log
 
+    /**
+     * @brief Lance si besoin les session, initialise les variables, vérifie si le fichier de log n'existe pas déjà ($_SESSION['log_started'])
+     * @param $p_path Représente l'emplacement et le nom du fichier de log
+     */
     public function __construct($p_path) {
 
         if(session_status() == PHP_SESSION_DISABLED) {
@@ -36,10 +44,17 @@ class Log {
 
     }
 
+    /**
+     * Désactive l'utilisation du fichier de log
+     */
     public function close() {
+        $_SESSION['log_started'] = false;
         unset($_SESSION['log_started']);
     }
 
+    /**
+     * Supprime le fichier de log
+     */
     public function delete_file() {
         @unlink($this->_path_log);
     }
