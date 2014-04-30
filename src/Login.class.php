@@ -1,38 +1,31 @@
-<?
-/* class GLogin 
- * crÈÈ par guidono
+Ôªø<?php
+/* class Login
+ * cr√©√© par Guillaume Gas
  * le 18/06/2010
- * 
- * site avec doc : http://www.gas28.net/guillaume/starwars/GClass/doc/index.html
  *
- * info : creation de cet objet doit Ítre prÈcÈdÈ d'un session_start() ainsi que d'un unset($_SESSION["user"]); par sÈcuritÈ
+ *
+ * info :
  * utilisation de la session : $_SESSION["user"][" ici le nom du champ : ex : pseudo "]
  * 
  *
  */
 
-class GLogin {
-	private $host_bdd; //variable nÈcessaire ‡ la connexion ‡ la base de donnÈe
-	private $login_bdd;
-	private $mdp_bdd;
-	private $base_bdd;
-	private $table_bdd;
+class Login {
+    private $bdd; //stocke un objet PDO
+    private $table;
 	
-	private $fichier_action; //nÈcessaire pour l'attribu action du tag form
+	private $fichier_action; //n√©cessaire pour l'attribu action du tag form
 	
 	private $liste_champs_value; //tableau contenant les champs (un pour contenant les values, 
 	private $liste_champs_name;  //un pour les noms
 	private $liste_champs_type;  //et un pour les types de champs (text, password...)
+    private $liste_champs_cryptes;
 	
-	private $connec_ok; //boolean pour savoir si la connexion a ÈtÈ faite
-	
-	//constructeur, initiation de toutes les variables...
-	public function __construct($p_host, $p_login, $p_mdp, $p_base, $p_table, $p_fichier_action) {
-		$this->host_bdd = $p_host;
-		$this->login_bdd = $p_login;
-		$this->mdp_bdd = $p_mdp;
-		$this->base_bdd = $p_base;
-		$this->table_bdd = $p_table;
+	private $connec_ok; //boolean pour savoir si la connexion a √©t√© faite
+
+	public function __construct($p_fichier_action, $p_table, $p_bdd = null) {
+		$this->bdd = $p_bdd;
+        $this->table = $p_table;
 		
 		$this->fichier_action = $p_fichier_action;
 	
@@ -41,72 +34,81 @@ class GLogin {
 		$this->liste_champs_type = array();
 		
 		$this->connec_ok = false;
-	}
-	
-	public function __destruct() {
-		unset($_SESSION['user']); //on vide la variable de session
-		mysql_close();			  //on ferme la connexion ‡ la BDD
+
+        if(session_status() == PHP_SESSION_DISABLED) {
+            session_start();
+        }
+        if(isset($_SESSION['user'])) {
+            unset($_SESSION['user']);
+        }
 	}
 	
 	public function logout() {
 		unset($_SESSION['user']);
 	}
-	
+
+    public function connect_db($p_host, $p_login, $p_mdp, $p_base) {
+        $this->bdd = new PDO('mysql:host='.$p_host.';dbname='.$p_base, $p_login, $p_mdp);
+    }
+
 	//fonction permettant de rajouter des champs (param : value, le nom du champs et son type (text, password...)
-	public function addChamp($p_value, $p_name, $p_type) {
-		array_push($this->liste_champs_value, $p_value); //on rempli les tableaux...
-		array_push($this->liste_champs_name, $p_name);
-		array_push($this->liste_champs_type, $p_type);
+	public function addChamp($p_value, $p_name, $p_type, $p_md5 = false) {
+		$this->liste_champs_value[] = $p_value;
+		$this->liste_champs_name[]  = $p_name;
+		$this->liste_champs_type[]  = $p_type;
+        if($p_md5) {
+            $this->liste_champs_cryptes[] = $p_name;
+        }
 	}
 	
-	/*ici la fonction affich() voici son fonctionnement :
-	* - connexion ‡ la base de donnÈe
-	* - on vÈrifi les les champs ont ÈtÈ remplis
-	* - si oui on gÈnËre la requÍte en fonction du nombre de champs
-	* - on execute la requÍte
-	* - sinon on affiche le formulaire
-	*/
-	public function affich() {
-		//connexion ‡ la base de donnÈe
-		mysql_connect($this->host_bdd, $this->login_bdd, $this->mdp_bdd) or die("Erreur connection BDD");
-		mysql_select_db($this->base_bdd) or die("Erreur selection table");
+	public function afficher() {
 		
-		//on vÈrifi ici si des donnÈes ont ÈtÈ envoyÈes
-		$this->champs_ok = true; //on suppose que les champs ont ÈtÈ remplis
+		//on v√©rifi ici si des donn√©es ont √©t√© envoy√©es
+		$this->champs_ok = true; //on suppose que les champs ont √©t√© remplis
+        $liste_valeurs = array();
 		for($i = 0; $i < count($this->liste_champs_name); $i++) { //on prend chaque nom de champs
-			if(!isset($_POST[$this->liste_champs_name[$i]])) {    //et on vÈrifi si des donnÈes ont ÈtÈ envoyÈs
-				$this->champs_ok = false;						  
-			}
+			if(!isset($_POST[$this->liste_champs_name[$i]])) {    //et on v√©rifi si des donn√©es ont √©t√© envoy√©s
+				$this->champs_ok = false;
+			} else {
+                if(in_array($this->liste_champs_name[$i], $this->liste_champs_cryptes)) {
+                    $liste_valeurs[':'.$i] = md5($_POST[$this->liste_champs_name[$i]]);
+                } else {
+                    $liste_valeurs[':'.$i] = $_POST[$this->liste_champs_name[$i]];
+                }
+            }
 		}
 		
-		//si les donnÈes ont ÈtÈ envoyÈes 
+		//si les donn√©es ont √©t√© envoy√©es 
 		if($this->champs_ok) {
-			//on gÈnËre la requÍte
-			$debut_requete = "SELECT * FROM ".$this->table_bdd." WHERE ";
+			//on g√©n√©re la requ√©te
+			$debut_requete = "SELECT * FROM ".$this->table." WHERE ";
 			
-			//dans cette partie de la requÍte, on doit ajouter chaque nom de champs, ceux ci Ètant stockÈ dans un tableau (liste_champs_name)
+			//dans cette partie de la requ√©te, on doit ajouter chaque nom de champs, ceux ci √©tant stock√© dans un tableau (liste_champs_name)
 			$fin_requete = "";
 			for($i = 0; $i < count($this->liste_champs_name); $i++) {
-				if($i == 0) { //si c'est le premier paramËtre, pas besoin de le faire prÈcÈder d'un AND 
-					$fin_requete = $this->liste_champs_name[$i]." = '".$_POST[$this->liste_champs_name[$i]]."' ";
-				} else { //sinon on le sÈpar des prÈcÈdent par un AND
-					$fin_requete = $fin_requete."AND ".$this->liste_champs_name[$i]." = '".$_POST[$this->liste_champs_name[$i]]."' ";
+				if($i == 0) { //si c'est le premier param√©tre, pas besoin de le faire pr√©c√©der d'un AND 
+					$fin_requete = $this->liste_champs_name[$i]." = :".$i;
+				} else { //sinon on le s√©par des pr√©c√©dent par un AND
+					$fin_requete .= " AND ".$this->liste_champs_name[$i]." = :".$i;
 				}
 			}
-			
-			$requete = mysql_query($debut_requete.$fin_requete); //concatÈnation de chaque partie de la requÍte
-			//execution de la requÍte
-			if($requete) {
-				if(mysql_num_rows($requete)) {
-					$_SESSION['user'] = mysql_fetch_array($requete); //on stock tout dans une variable de session
+
+            //concat√©nation de chaque partie de la requ√©te, utilisation de prepare pour plus de s√©curit√©
+			$requete = $this->bdd->prepare($debut_requete.$fin_requete);
+
+			if($requete->execute($liste_valeurs)) {
+				if($requete->rowCount() > 0) {
+					$_SESSION['user'] = $requete->fetch(); //on stock tout dans une variable de session
 					info("Vous etes connecte.");
-					$this->connec_ok = true; //on indique que la connexion est Ètablie
+					$this->connec_ok = true; //on indique que la connexion est √©tablie
 				} else {
 					erreur("Erreur lors de la connexion.");
 				}
 			} else {
 				erreur("Erreur requete");
 			}
+
+            echo var_dump($debut_requete.$fin_requete);
 		} else {
 			//affichage du formulaire
 			echo '<form action="'.$this->fichier_action.'", method="POST">';
@@ -120,7 +122,7 @@ class GLogin {
 		}
 	}
 	
-	//fonction permettant de vÈrifier si la connexion a ÈtÈ Ètablie
+	//fonction permettant de v√©rifier si la connexion a √©t√© √©tablie
 	public function connexion_ok() {
 		if($this->connec_ok) {
 			return true;
