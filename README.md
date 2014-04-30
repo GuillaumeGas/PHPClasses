@@ -47,3 +47,36 @@ try {
 
 $this->log->write_log();
 ```
+
+# Fichiers #
+Classe permettant de gérer l'enregistrement d'un ou de plusieurs fichiers envoyés via formulaire html.
+De plus, elle assure que le fichier copié aura un nom unique pour en pas entrer en conflit avec les fichiers déjà présents
+Exemple pour 1 fichier :
+
+```php
+//Le % indique qu'on désire une concaténation avec le nom d'origine
+if($f->sauver("maphoto", "../Photos/", "%".$_SESSION["code_session"])) {
+    echo "Fichier envoye !";
+} else {
+    echo $f->get_erreurs();
+}
+
+if($f->sauver("maphoto2", "../Photos/", "nouveau_nom")) {
+    echo "Fichier envoye !";
+} else {
+    echo $f->get_erreurs();
+}
+```
+
+Exemple avec plusieurs fichiers (attribut 'multiple' dans le formulaire html) :
+```php
+if($f->sauver_multiple("fichiers", "../Annuaire/", "_".$_POST["numero"])) { //ici c'est concaténation ou rien (paramètre falcultatif)
+    $liste_fichiers = $f->get_files_names();
+    foreach($liste_fichiers as $fichier) {
+        //traitement avec le nom des fichiers...
+    }
+    echo "Fichiers envoyes !";
+} else {
+    echo $f->get_erreurs();
+}
+```
