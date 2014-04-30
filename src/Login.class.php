@@ -105,7 +105,7 @@ class Login {
 	}
 
 	public function login() {
-        if(!$this->connec_ok) {
+        if(!$this->connec_ok && $this->bdd != null) {
             //on vérifi ici si des données ont été envoyées
             $this->champs_ok = true; //on suppose que les champs ont été remplis
             $liste_valeurs = array();
@@ -145,7 +145,7 @@ class Login {
                         $_SESSION['user_connected'] = true;
                         $this->connec_ok = true; //on indique que la connexion est établie
 
-                        $this->log->add_info_log("Connexion de l'utilisateur effectuee.");
+                        $this->log->write_info_log("Connexion de l'utilisateur effectuee.");
 
                         return true;
                     } else {
@@ -155,13 +155,28 @@ class Login {
                     $this->log->add_err_log("Erreur dans la requete !");
                 }
             }
+            $this->log->write_log();
+            return false;
+        } else if($this->bdd == null) {
+            $this->log->add_err_log("Erreur, base de données non connectée.");
+            $this->log->write_log();
             return false;
         } else {
+            $this->log->write_log();
             return true;
         }
-
         $this->log->write_log();
 	}
+
+    public function donnees_envoyees() {
+        $champs_ok = true; //on suppose que les champs ont été remplis
+        for($i = 0; $i < count($this->liste_champs_name); $i++) { //on prend chaque nom de champs
+            if(!isset($_POST[$this->liste_champs_name[$i]])) {    //et on vérifi si des données ont été envoyés
+                $champs_ok = false;
+            }
+        }
+        return $champs_ok;
+    }
 
     public function generer_formulaire() {
         $this->log->add_info_log("Génération du formulaire de connexion.");
