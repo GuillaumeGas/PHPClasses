@@ -38,10 +38,10 @@ class Log {
     /**
      * Désactive l'utilisation du fichier de log
      */
-    public function close() {
+    /*public function close() {
         $_SESSION['log_started'] = false;
         unset($_SESSION['log_started']);
-    }
+    }*/
 
     /**
      * Supprime le fichier de log
