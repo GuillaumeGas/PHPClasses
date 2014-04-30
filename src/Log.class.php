@@ -19,7 +19,7 @@ class Log {
      */
     public function __construct($p_path) {
 
-        if(session_status() == PHP_SESSION_DISABLED) {
+        if(session_id() == "") {
             session_start();
         }
 
