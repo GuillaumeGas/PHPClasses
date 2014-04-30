@@ -10,6 +10,8 @@
  *
  */
 
+require("Log.class.php");
+
 class Login {
     private $bdd; //stocke un objet PDO
     private $table;
@@ -22,8 +24,13 @@ class Login {
     private $liste_champs_cryptes;
 	
 	private $connec_ok; //boolean pour savoir si la connexion a été faite
+    private $log;
+    private $utiliser_log;
 
-	public function __construct($p_fichier_action, $p_table, $p_bdd = null) {
+	public function __construct($p_fichier_action, $p_table, $p_bdd = null, $p_log = false, $p_path_log = "login.log") {
+        $this->log = new Log($p_path_log);
+        $this->utiliser_log = $p_log;
+
 		$this->bdd = $p_bdd;
         $this->table = $p_table;
 		
@@ -37,6 +44,7 @@ class Login {
 
         if(session_status() == PHP_SESSION_DISABLED) {
             session_start();
+            $this->log->add_info_log("Activation des sessions");
         }
 
         if(isset($_SESSION['user_connected'])) {
@@ -44,15 +52,46 @@ class Login {
                 $this->connec_ok = true;
             }
         }
+
+        $this->log->write_log();
 	}
-	
+
+    public function __destruct() {
+        if($this->utiliser_log == false) {
+            $this->log->close();
+            $this->log->delete_file();
+        }
+    }
+
+    /**
+     * @brief Permet d'activer ou non l'utilisation du fichier de log (false par défaut)
+     * @param $val (true pour activier sinon false)
+     */
+    public function set_log($val) {
+        $this->utiliser_log = $val;
+        $this->log->write_info_log("Activation du fichier de log");
+    }
+
+    public function show_log_messages($val) {
+        $this->log->set_show_err($val);
+        $this->log->set_show_info($val);
+    }
+
 	public function logout() {
 		unset($_SESSION['user']);
         unset($_SESSION['user_connected']);
+        $this->log->write_info_log("Deconnexion de l'utilisateur.");
 	}
 
     public function connect_db($p_host, $p_login, $p_mdp, $p_base) {
-        $this->bdd = new PDO('mysql:host='.$p_host.';dbname='.$p_base, $p_login, $p_mdp);
+        try {
+            $this->bdd = new PDO('mysql:host='.$p_host.';dbname='.$p_base, $p_login, $p_mdp);
+            $this->log->add_info_log("Connexion à la base de donnees effectuee.");
+        } catch(PDOException $e) {
+            $this->log->add_err_log("Erreur lors de la connexion.");
+        }
+
+        $this->log->write_log();
     }
 
 	//fonction permettant de rajouter des champs (param : value, le nom du champs et son type (text, password...)
@@ -104,23 +143,28 @@ class Login {
                     if($requete->rowCount() > 0) {
                         $_SESSION['user'] = $requete->fetch(); //on stock tout dans une variable de session
                         $_SESSION['user_connected'] = true;
-                        info("Vous etes connecte.");
                         $this->connec_ok = true; //on indique que la connexion est établie
+
+                        $this->log->add_info_log("Connexion de l'utilisateur effectuee.");
+
                         return true;
                     } else {
-                        erreur("Erreur lors de la connexion.");
+                        $this->log->add_err_log("Erreur lors de la connexion !");
                     }
                 } else {
-                    erreur("Erreur requete");
+                    $this->log->add_err_log("Erreur dans la requete !");
                 }
             }
             return false;
         } else {
             return true;
         }
+
+        $this->log->write_log();
 	}
 
     public function generer_formulaire() {
+        $this->log->add_info_log("Génération du formulaire de connexion.");
         //affichage du formulaire
         echo '<form action="'.$this->fichier_action.'", method="POST">';
         echo '<table>';
@@ -130,6 +174,8 @@ class Login {
         echo '<tr><td><center><input type="submit" value="ok"></center></td></tr>';
         echo '</form>';
         echo '</form>';
+
+        $this->log->write_log();
     }
 
 	//fonction permettant de vérifier si la connexion a été établie
@@ -141,12 +187,5 @@ class Login {
 		}
 	}
 	
-}
-
-function info($message) {
-	echo '<center><font color="green">'.$message.'</font></center>';
-}
-function erreur($message) {
-	echo '<center><font color="red">'.$message.'</font></center>';
 }
 ?>
