@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Phpclasses by GuillaumeGas</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/GuillaumeGas/PHPClasses">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/GuillaumeGas/PHPClasses/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/GuillaumeGas/PHPClasses/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Phpclasses</h1>
+          <p>Regroupement de classes php utiles</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/GuillaumeGas">GuillaumeGas</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="phpclasses" class="anchor" href="#phpclasses"><span class="octicon octicon-link"></span></a>PHPClasses</h1>
+
+<p>Regroupement de classes php utiles</p>
+
+<h1>
+<a name="login" class="anchor" href="#login"><span class="octicon octicon-link"></span></a>Login</h1>
+
+<p>Cette classe permet la création d'une page de login très simplement, avec ou sans génération de formulaire.
+Exemple :</p>
+
+<div class="highlight highlight-php"><pre><span class="nb">session_start</span><span class="p">();</span>
+<span class="k">require</span><span class="p">(</span><span class="s2">"Login.class.php"</span><span class="p">);</span>
+
+<span class="c1">//On indique la table à utiliser</span>
+<span class="nv">$l</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Login</span><span class="p">(</span><span class="s2">"admin"</span><span class="p">);</span>
+<span class="c1">//$l = new Login("admin", $bdd); Cas où nous sommes déjà connecté avec PDO</span>
+<span class="c1">//On indique qu'on veut utiliser le fichier de log</span>
+<span class="nv">$l</span><span class="o">-&gt;</span><span class="na">show_log_messages</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+<span class="c1">//Connexion à la base si besoin</span>
+<span class="nv">$l</span><span class="o">-&gt;</span><span class="na">connect_db</span><span class="p">(</span><span class="s2">"localhost"</span><span class="p">,</span> <span class="s2">"guidono"</span><span class="p">,</span> <span class="s2">"235235"</span><span class="p">,</span> <span class="s2">"peche_dir4"</span><span class="p">);</span>
+
+<span class="c1">//On ajoute les champs voulus (label, nom_champ, type_champ)</span>
+<span class="nv">$l</span><span class="o">-&gt;</span><span class="na">addChamp</span><span class="p">(</span><span class="s2">"Login"</span><span class="p">,</span> <span class="s2">"login"</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">);</span>
+<span class="nv">$l</span><span class="o">-&gt;</span><span class="na">addChamp</span><span class="p">(</span><span class="s2">"Mdp"</span><span class="p">,</span> <span class="s2">"mdp"</span><span class="p">,</span> <span class="s2">"password"</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+
+<span class="k">if</span><span class="p">(</span><span class="nv">$l</span><span class="o">-&gt;</span><span class="na">login</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">"ok"</span><span class="p">;</span>
+    <span class="nv">$l</span><span class="o">-&gt;</span><span class="na">logout</span><span class="p">();</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nv">$l</span><span class="o">-&gt;</span><span class="na">generer_formulaire</span><span class="p">(</span><span class="s2">"test.php"</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<h1>
+<a name="log" class="anchor" href="#log"><span class="octicon octicon-link"></span></a>Log</h1>
+
+<p>Cette classe permet de gérer un fichier de log
+Exemple :</p>
+
+<div class="highlight highlight-php"><pre><span class="k">require</span><span class="p">(</span><span class="s2">"Log.class.php"</span><span class="p">);</span>
+
+<span class="nv">$log</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Log</span><span class="p">(</span><span class="s2">"../login.log"</span><span class="p">);</span>
+
+<span class="k">try</span> <span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">bdd</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">PDO</span><span class="p">(</span><span class="s1">'mysql:host='</span><span class="o">.</span><span class="nv">$p_host</span><span class="o">.</span><span class="s1">';dbname='</span><span class="o">.</span><span class="nv">$p_base</span><span class="p">,</span> <span class="nv">$p_login</span><span class="p">,</span> <span class="nv">$p_mdp</span><span class="p">);</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">log</span><span class="o">-&gt;</span><span class="na">add_info_log</span><span class="p">(</span><span class="s2">"Connexion à la base de donnees effectuee."</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">PDOException</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">log</span><span class="o">-&gt;</span><span class="na">add_err_log</span><span class="p">(</span><span class="s2">"Erreur lors de la connexion à la base de données."</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">log</span><span class="o">-&gt;</span><span class="na">write_log</span><span class="p">();</span>
+</pre></div>
+
+<h1>
+<a name="fichiers" class="anchor" href="#fichiers"><span class="octicon octicon-link"></span></a>Fichiers</h1>
+
+<p>Classe permettant de gérer l'enregistrement d'un ou de plusieurs fichiers envoyés via formulaire html.
+De plus, elle assure que le fichier copié aura un nom unique pour en pas entrer en conflit avec les fichiers déjà présents
+Exemple pour 1 fichier :</p>
+
+<div class="highlight highlight-php"><pre><span class="c1">//Le % indique qu'on désire une concaténation avec le nom d'origine</span>
+<span class="k">if</span><span class="p">(</span><span class="nv">$f</span><span class="o">-&gt;</span><span class="na">sauver</span><span class="p">(</span><span class="s2">"maphoto"</span><span class="p">,</span> <span class="s2">"../Photos/"</span><span class="p">,</span> <span class="s2">"%"</span><span class="o">.</span><span class="nv">$_SESSION</span><span class="p">[</span><span class="s2">"code_session"</span><span class="p">]))</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">"Fichier envoye !"</span><span class="p">;</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="nv">$f</span><span class="o">-&gt;</span><span class="na">get_erreurs</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">if</span><span class="p">(</span><span class="nv">$f</span><span class="o">-&gt;</span><span class="na">sauver</span><span class="p">(</span><span class="s2">"maphoto2"</span><span class="p">,</span> <span class="s2">"../Photos/"</span><span class="p">,</span> <span class="s2">"nouveau_nom"</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">"Fichier envoye !"</span><span class="p">;</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="nv">$f</span><span class="o">-&gt;</span><span class="na">get_erreurs</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Exemple avec plusieurs fichiers (attribut 'multiple' dans le formulaire html) :</p>
+
+<div class="highlight highlight-php"><pre><span class="k">if</span><span class="p">(</span><span class="nv">$f</span><span class="o">-&gt;</span><span class="na">sauver_multiple</span><span class="p">(</span><span class="s2">"fichiers"</span><span class="p">,</span> <span class="s2">"../Annuaire/"</span><span class="p">,</span> <span class="s2">"_"</span><span class="o">.</span><span class="nv">$_POST</span><span class="p">[</span><span class="s2">"numero"</span><span class="p">]))</span> <span class="p">{</span> <span class="c1">//ici c'est concaténation ou rien (paramètre falcultatif)</span>
+    <span class="nv">$liste_fichiers</span> <span class="o">=</span> <span class="nv">$f</span><span class="o">-&gt;</span><span class="na">get_files_names</span><span class="p">();</span>
+    <span class="k">foreach</span><span class="p">(</span><span class="nv">$liste_fichiers</span> <span class="k">as</span> <span class="nv">$fichier</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">//traitement avec le nom des fichiers...</span>
+    <span class="p">}</span>
+    <span class="k">echo</span> <span class="s2">"Fichiers envoyes !"</span><span class="p">;</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="nv">$f</span><span class="o">-&gt;</span><span class="na">get_erreurs</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
