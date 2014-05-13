@@ -42,40 +42,45 @@ class Fichiers {
      */
     public function sauver($fichier, $path = "", $nom_fichier = "", $extension = "-1") {
         if(isset($_FILES)) {
-            if($_FILES[$fichier]['error'] == UPLOAD_ERR_OK) {
-                if(isset($_FILES[$fichier]['name'])) {
-                    $ext = '.'.pathinfo($_FILES[$fichier]['name'],PATHINFO_EXTENSION); //récupération de l'extension du fichier pour analyse
-                    if($extension != "-1" && $ext != $extension) {
-                        $this->add_err_log("[!] Mauvaise extention ! Attendue : ".$extension.", Trouvee : ".$ext);
-                        $this->_nb_err++;
-                    } else {
-                        if(!empty($nom_fichier)) {
-                            //Le % indique qu'un désire une concaténation
-                            if($nom_fichier[0] == "%") {
-                                $file_name = $this->trouver_nom_unique(pathinfo($_FILES[$fichier]['name'])['filename'].substr($nom_fichier, 1, strlen($nom_fichier)).$ext, $path);
-                            } else {
-                                $file_name = $this->trouver_nom_unique($nom_fichier, $path);
-                            }
-                        } else {
-                            $file_name = $this->trouver_nom_unique($_FILES[$fichier]['name'], $path);
-                        }
-                        //On garde en mémoire le nouveau nom du fichier
-                        $this->_files_names[] = $_FILES[$fichier]['name'];
-
-                        //On copie pour de bon le fichier
-                        if(!move_uploaded_file($_FILES[$fichier]['tmp_name'], $path.$file_name)) {
-                            $this->add_err_log("[!] Erreur lors de la copie du fichier.");
+            if(isset($_FILES[$fichier])) {
+                if($_FILES[$fichier]['error'] == UPLOAD_ERR_OK) {
+                    if(isset($_FILES[$fichier]['name'])) {
+                        $ext = '.'.pathinfo($_FILES[$fichier]['name'],PATHINFO_EXTENSION); //récupération de l'extension du fichier pour analyse
+                        if($extension != "-1" && $ext != $extension) {
+                            $this->add_err_log("[!] Mauvaise extention ! Attendue : ".$extension.", Trouvee : ".$ext);
                             $this->_nb_err++;
                         } else {
-                            $this->add_info_log("[Copie reussie] : ".$_FILES[$fichier]['name']." -> ".$path.$file_name);
+                            if(!empty($nom_fichier)) {
+                                //Le % indique qu'un désire une concaténation
+                                if($nom_fichier[0] == "%") {
+                                    $file_name = $this->trouver_nom_unique(pathinfo($_FILES[$fichier]['name'])['filename'].substr($nom_fichier, 1, strlen($nom_fichier)).$ext, $path);
+                                } else {
+                                    $file_name = $this->trouver_nom_unique($nom_fichier, $path);
+                                }
+                            } else {
+                                $file_name = $this->trouver_nom_unique($_FILES[$fichier]['name'], $path);
+                            }
+                            //On garde en mémoire le nouveau nom du fichier
+                            $this->_files_names[] = $_FILES[$fichier]['name'];
+
+                            //On copie pour de bon le fichier
+                            if(!move_uploaded_file($_FILES[$fichier]['tmp_name'], $path.$file_name)) {
+                                $this->add_err_log("[!] Erreur lors de la copie du fichier.");
+                                $this->_nb_err++;
+                            } else {
+                                $this->add_info_log("[Copie reussie] : ".$_FILES[$fichier]['name']." -> ".$path.$file_name);
+                            }
                         }
+                    } else {
+                        $this->add_err_log("[!] Erreur, fichier inexistant.<br>");
+                        $this->_nb_err++;
                     }
                 } else {
-                    $this->add_err_log("[!] Erreur, fichier inexistant.<br>");
+                    $this->check_erreur($_FILES[$fichier]['error']);
                     $this->_nb_err++;
                 }
             } else {
-                $this->check_erreur($_FILES[$fichier]['error']);
+                $this->add_err_log("[!] Aucun fichier envoyé.");
                 $this->_nb_err++;
             }
         } else {
@@ -111,35 +116,37 @@ class Fichiers {
      */
     public function sauver_multiple($fichiers, $path = "", $concat = "", $extension = "-1") {
         if(isset($_FILES)) {
-            $i = 0;
-            while(isset($_FILES[$fichiers]['name'][$i])) {
-                if($_FILES[$fichiers]['error'][$i] == UPLOAD_ERR_OK) {
-                    $ext = '.'.pathinfo($_FILES[$fichiers]['name'][$i],PATHINFO_EXTENSION);
-                    if($extension != "-1" && $ext != $extension) {
-                        $this->add_err_log("[!] Mauvaise extention ! Attendue : ".$extension.", Trouvee : ".$ext.", Fichier concerné : ".$_FILES[$fichiers]['name'][$i].".");
-                        $this->_nb_err++;
-                    } else {
-                        if(!empty($concat)) {
-                            $file_name = $this->trouver_nom_unique(pathinfo($_FILES[$fichiers]['name'][$i])['filename'].$concat.$ext, $path);
-                        } else {
-                            $file_name = $this->trouver_nom_unique($_FILES[$fichiers]['name'][$i], $path);
-                        }
-                        $this->_files_names[] = $file_name;
-
-                        if(!move_uploaded_file($_FILES[$fichiers]['tmp_name'][$i], $path.$file_name)) {
-                            $this->add_err_log("[!] Erreur lors de la copie du fichier ".$_FILES[$fichiers]['name'][$i].".");
+            if(isset($_FILES[$fichiers])) {
+                $i = 0;
+                while(isset($_FILES[$fichiers]['name'][$i])) {
+                    if($_FILES[$fichiers]['error'][$i] == UPLOAD_ERR_OK) {
+                        $ext = '.'.pathinfo($_FILES[$fichiers]['name'][$i],PATHINFO_EXTENSION);
+                        if($extension != "-1" && $ext != $extension) {
+                            $this->add_err_log("[!] Mauvaise extention ! Attendue : ".$extension.", Trouvee : ".$ext.", Fichier concerné : ".$_FILES[$fichiers]['name'][$i].".");
                             $this->_nb_err++;
                         } else {
-                            $this->add_info_log("[Copie reussie] : ".$_FILES[$fichiers]['name'][$i]." -> ".$path.$file_name.".");
+                            if(!empty($concat)) {
+                                $file_name = $this->trouver_nom_unique(pathinfo($_FILES[$fichiers]['name'][$i])['filename'].$concat.$ext, $path);
+                            } else {
+                                $file_name = $this->trouver_nom_unique($_FILES[$fichiers]['name'][$i], $path);
+                            }
+                            $this->_files_names[] = $file_name;
+
+                            if(!move_uploaded_file($_FILES[$fichiers]['tmp_name'][$i], $path.$file_name)) {
+                                $this->add_err_log("[!] Erreur lors de la copie du fichier ".$_FILES[$fichiers]['name'][$i].".");
+                                $this->_nb_err++;
+                            } else {
+                                $this->add_info_log("[Copie reussie] : ".$_FILES[$fichiers]['name'][$i]." -> ".$path.$file_name.".");
+                            }
+
                         }
 
+                        $i++;
+                    } else {
+                        $this->check_erreur($_FILES[$fichiers]['error'][$i]);
+                        $this->add_err_log("\tFichier concerné ".$_FILES[$fichiers]['name'][$i].".");
+                        $this->_nb_err++;
                     }
-
-                    $i++;
-                } else {
-                    $this->check_erreur($_FILES[$fichiers]['error'][$i]);
-                    $this->add_err_log("\tFichier concerné ".$_FILES[$fichiers]['name'][$i].".");
-                    $this->_nb_err++;
                 }
             }
         } else {
