@@ -61,7 +61,7 @@ class Fichiers {
                                 $file_name = $this->trouver_nom_unique($_FILES[$fichier]['name'], $path);
                             }
                             //On garde en mémoire le nouveau nom du fichier
-                            $this->_files_names[] = $_FILES[$fichier]['name'];
+                            $this->_files_names[] = $file_name;
 
                             //On copie pour de bon le fichier
                             if(!move_uploaded_file($_FILES[$fichier]['tmp_name'], $path.$file_name)) {
