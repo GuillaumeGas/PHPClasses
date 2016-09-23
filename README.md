@@ -16,7 +16,7 @@ $l = new Login("admin");
 //On indique qu'on veut utiliser le fichier de log
 $l->show_log_messages(true);
 //Connexion à la base si besoin
-$l->connect_db("localhost", "guidono", "235235", "peche_dir4");
+$l->connect_db("localhost", "guidono", "235235", "base_name");
 
 //On ajoute les champs voulus (label, nom_champ, type_champ)
 $l->addChamp("Login", "login", "text");
